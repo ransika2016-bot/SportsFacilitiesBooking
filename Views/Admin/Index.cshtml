@@ -1,0 +1,75 @@
+@model IEnumerable<SportsBookingSystem.Models.Booking>
+@{
+    ViewData["Title"] = "Dashboard Overview";
+    Layout = "_AdminLayout";
+}
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Members</h5>
+                <p class="card-text fs-2">@ViewBag.TotalMembers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Facilities</h5>
+                <p class="card-text fs-2">@ViewBag.TotalFacilities</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Bookings</h5>
+                <p class="card-text fs-2">@ViewBag.TotalBookings</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Inquiries</h5>
+                <p class="card-text fs-2">@ViewBag.TotalInquiries</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Recent Bookings</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Member</th>
+                    <th>Facility</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model)
+                {
+                    <tr>
+                        <td>#@booking.BookingID</td>
+                        <td>@(booking.Member?.FirstName) @(booking.Member?.LastName)</td>
+                        <td>@(booking.Facility?.FacilityName)</td>
+                        <td>@booking.BookingDate.ToString("MMM dd, yyyy") (@booking.StartTime.ToString("HH:mm") - @booking.EndTime.ToString("HH:mm"))</td>
+                        <td>
+                            <span class="badge @(booking.Status == "Confirmed" ? "bg-success" : "bg-danger")">
+                                @booking.Status
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

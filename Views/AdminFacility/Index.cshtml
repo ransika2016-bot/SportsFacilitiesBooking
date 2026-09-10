@@ -1,0 +1,45 @@
+@model IEnumerable<SportsBookingSystem.Models.Facility>
+@{
+    ViewData["Title"] = "Manage Facilities";
+    Layout = "_AdminLayout";
+}
+
+<div class="mb-3 text-end">
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add New Facility</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.FacilityID</td>
+                        <td>@item.FacilityName</td>
+                        <td>@(item.FacilityType?.TypeName)</td>
+                        <td>@item.Location</td>
+                        <td>
+                            <span class="badge @(item.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.FacilityID" class="btn btn-sm btn-outline-primary">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,68 @@
+@{
+    ViewData["Title"] = "Become a Member";
+}
+
+<div class="container page-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-5">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <div class="icon-circle" style="background: #d1fae5; color: #059669;">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h4>Become a Member</h4>
+                    <p>Quick sign-up — just your name and email</p>
+                </div>
+                <div class="form-card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            @Html.ValidationSummary()
+                        </div>
+                    }
+
+                    <form method="post" asp-action="GuestRegister" asp-controller="Account">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" name="name" class="form-control" placeholder="e.g. Nimal Perera" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" class="form-control" placeholder="e.g. nimal@example.com" required />
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            A temporary password (<strong>default123</strong>) will be set for your account. 
+                            You can change it after logging in.
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-2">
+                            <i class="bi bi-check-circle me-2"></i>Register Now
+                        </button>
+                    </form>
+
+                    <hr />
+                    <div class="text-center">
+                        <p class="text-muted small mb-2">Want full registration with sport preferences?</p>
+                        <a asp-action="Register" asp-controller="Account" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-clipboard-check me-1"></i>Full Registration
+                        </a>
+                    </div>
+                    <div class="text-center mt-3">
+                        <p class="text-muted small mb-0">Already a member? <a asp-action="Login" asp-controller="Account">Log in here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

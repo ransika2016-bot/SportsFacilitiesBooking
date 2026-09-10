@@ -1,0 +1,196 @@
+@model SportsBookingSystem.Models.Facility
+
+@{
+    ViewData["Title"] = Model.FacilityName;
+    bool isMember = Context.Session.GetInt32("MemberID") != null;
+}
+
+<div class="container page-container">
+    <div class="details-card">
+        <div class="details-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "https://images.unsplash.com/photo-1584988698715-99201f99c857?q=80&w=600&auto=format&fit=crop")') center/cover no-repeat;">
+            <span class="badge bg-white text-dark mb-2">@Model.FacilityType?.TypeName</span>
+            <h1>@Model.FacilityName</h1>
+            <p class="mb-0 opacity-75"><i class="bi bi-pin-map me-1"></i>@Model.Location</p>
+
+            @{
+                double avgRating = ViewBag.AverageRating;
+                int reviewCount = ViewBag.ReviewCount;
+            }
+            @if (reviewCount > 0)
+            {
+                <div class="mt-2">
+                    <span class="star-rating">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= (int)Math.Round(avgRating))
+                            {
+                                <i class="bi bi-star-fill text-warning"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-light"></i>
+                            }
+                        }
+                    </span>
+                    <span class="ms-2 text-white-50">@avgRating / 5 (@reviewCount review@(reviewCount != 1 ? "s" : ""))</span>
+                </div>
+            }
+        </div>
+        <div class="details-body">
+            <div class="detail-item">
+                <i class="bi bi-info-circle"></i>
+                <div>
+                    <strong>Description</strong>
+                    <div class="text-muted">@(Model.Description ?? "No description available.")</div>
+                </div>
+            </div>
+            @if (Model.Capacity.HasValue)
+            {
+                <div class="detail-item">
+                    <i class="bi bi-people"></i>
+                    <div>
+                        <strong>Capacity</strong>
+                        <div class="text-muted">@Model.Capacity people</div>
+                    </div>
+                </div>
+            }
+            <div class="detail-item">
+                <i class="bi bi-check-circle"></i>
+                <div>
+                    <strong>Status</strong>
+                    <div><span class="status-badge status-confirmed">@Model.Status</span></div>
+                </div>
+            </div>
+
+            <div class="mt-4 mb-4">
+                <h5 class="mb-3"><i class="bi bi-geo-alt me-2"></i>Location Map</h5>
+                <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee;">
+                    @{
+                        string query = $"{Model.FacilityName}, {Model.Location}";
+                    }
+                    <iframe width="100%" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+                        src="https://maps.google.com/maps?q=@Uri.EscapeDataString(query)&t=&z=15&ie=UTF8&iwloc=&output=embed">
+                    </iframe>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                @if (isMember && Model.Status == "Active")
+                {
+                    <a href="@Url.Action("Create", "Booking", new { facilityId = Model.FacilityID })"
+                       class="btn btn-primary"><i class="bi bi-calendar-plus me-2"></i>Book This Facility</a>
+                }
+                else if (!isMember)
+                {
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Login to Book</a>
+                }
+                <a href="@Url.Action("Search", "Facility")" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to Search</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var bookings = ViewBag.Bookings as List<SportsBookingSystem.Models.Booking>;
+    var timeSlots = ViewBag.TimeSlots as List<TimeSpan>;
+    DateTime selectedDate = ViewBag.SelectedDate;
+}
+
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Check Availability</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-action="Details" asp-route-id="@Model.FacilityID" class="row g-2 mb-4">
+            <div class="col-auto">
+                <label class="col-form-label">Select Date:</label>
+            </div>
+            <div class="col-auto">
+                <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Check</button>
+            </div>
+        </form>
+
+        <div class="row row-cols-2 row-cols-md-4 g-2">
+            @foreach (var slot in timeSlots)
+            {
+                var slotStart = selectedDate.Date + slot;
+                bool isBooked = bookings.Any(b => b.StartTime <= slotStart && b.EndTime > slotStart);
+
+                <div class="col">
+                    @if (isBooked)
+                    {
+                        <div class="p-2 text-center rounded bg-danger text-white">
+                            @slot.ToString(@"hh\:mm") <br /><small>Booked</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Create", "Booking", new { facilityId = Model.FacilityID, date = selectedDate.ToString("yyyy-MM-dd"), startTime = slot.ToString(@"hh\:mm") })"
+                           class="text-decoration-none">
+                            <div class="p-2 text-center rounded bg-success text-white">
+                                @slot.ToString(@"hh\:mm") <br /><small>Available</small>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@{
+    var facilityReviews = ViewBag.FacilityReviews as List<SportsBookingSystem.Models.Review>;
+}
+
+<div class="card mt-4 mb-4 reveal">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Member Reviews (@(facilityReviews?.Count ?? 0))</h5>
+    </div>
+    <div class="card-body">
+        @if (facilityReviews == null || !facilityReviews.Any())
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-chat-dots d-block" style="font-size: 2rem; color: #ccc;"></i>
+                <p class="text-muted mt-2 mb-0">No reviews yet. Book this facility and be the first to share your experience!</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var review in facilityReviews)
+                {
+                    <div class="col-md-6">
+                        <div class="review-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>@(review.IsAnonymous ? "Anonymous" : $"{review.Member?.FirstName} {review.Member?.LastName}")</strong>
+                                    <div class="text-muted small">@review.ReviewDate.ToString("MMM dd, yyyy")</div>
+                                </div>
+                                <span class="star-rating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star text-muted"></i>
+                                        }
+                                    }
+                                </span>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(review.CommentText))
+                            {
+                                <p class="mb-0 text-muted fst-italic">"@review.CommentText"</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "My Bookings";
+    var upcoming = ViewBag.Upcoming as List<SportsBookingSystem.Models.Booking>;
+    var past = ViewBag.Past as List<SportsBookingSystem.Models.Booking>;
+}
+
+<div class="container page-container">
+    <div class="page-header">
+        <h2><i class="bi bi-calendar-check text-primary me-2"></i>My Bookings</h2>
+        <p>
+            @if (ViewBag.MemberName != null)
+            {
+                <span>Logged in as <strong>@ViewBag.MemberName</strong></span>
+            }
+            else
+            {
+                <span>Manage your reservations and leave reviews</span>
+            }
+        </p>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="bookingTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#upcomingTab" type="button" role="tab">
+                Upcoming <span class="badge bg-success ms-1">@upcoming.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pastTab" type="button" role="tab">
+                Past / Cancelled <span class="badge bg-secondary ms-1">@past.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="upcomingTab" role="tabpanel">
+            @if (!upcoming.Any())
+            {
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x d-block"></i>
+                    <h5>No upcoming bookings</h5>
+                    <p class="text-muted mb-3">You don't have any upcoming reservations.</p>
+                    <a asp-controller="Facility" asp-action="Search" class="btn btn-primary">Browse Facilities</a>
+                </div>
+            }
+            else
+            {
+                <div class="bookings-table-wrap">
+                    <table class="table bookings-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Facility</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var booking in upcoming)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">#@booking.BookingID</td>
+                                    <td>@(booking.Facility?.FacilityName ?? "Facility #" + booking.FacilityID)</td>
+                                    <td>@booking.BookingDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@booking.StartTime.ToString("HH:mm") - @booking.EndTime.ToString("HH:mm")</td>
+                                    <td>
+                                        <span class="status-badge status-confirmed">@booking.Status</span>
+                                    </td>
+                                    <td>
+                                        <form asp-action="Cancel" asp-controller="Booking" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@booking.BookingID" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Cancel this booking?');"
+                                                    title="Cancel booking">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="pastTab" role="tabpanel">
+            @if (!past.Any())
+            {
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x d-block"></i>
+                    <h5>No past bookings</h5>
+                    <p class="text-muted mb-3">Your completed and cancelled bookings will show here.</p>
+                </div>
+            }
+            else
+            {
+                <div class="bookings-table-wrap">
+                    <table class="table bookings-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Facility</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var booking in past)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">#@booking.BookingID</td>
+                                    <td>@(booking.Facility?.FacilityName ?? "Facility #" + booking.FacilityID)</td>
+                                    <td>@booking.BookingDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@booking.StartTime.ToString("HH:mm") - @booking.EndTime.ToString("HH:mm")</td>
+                                    <td>
+                                        <span class="status-badge @(booking.Status == "Cancelled" ? "status-cancelled" : booking.Status == "Completed" ? "status-completed" : "status-confirmed")">
+                                            @booking.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @{
+                                        bool isCancelled = booking.Status == "Cancelled";
+                                        bool endTimePassed = booking.EndTime < DateTime.Now;
+                                        bool alreadyReviewed = false;
+                                        if (ViewBag.ReviewedBookingIds != null)
+                                        {
+                                            var reviewedIds = ViewBag.ReviewedBookingIds as HashSet<int>;
+                                            alreadyReviewed = reviewedIds != null && reviewedIds.Contains(booking.BookingID);
+                                        }
+                                    }
+                                    @if (!isCancelled && endTimePassed && alreadyReviewed)
+                                    {
+                                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
+                                    }
+                                    else if (!isCancelled && endTimePassed && !alreadyReviewed)
+                                    {
+                                        <a asp-controller="Review" asp-action="Create" asp-route-bookingId="@booking.BookingID"
+                                           class="btn btn-sm btn-outline-warning" title="Leave a Review">
+                                            <i class="bi bi-star me-1"></i>Leave a Review
+                                        </a>
+                                    }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

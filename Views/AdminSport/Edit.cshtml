@@ -1,0 +1,41 @@
+@model SportsBookingSystem.Models.Sport
+
+@{
+    ViewData["Title"] = "Edit Sport";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="mb-4">
+    <a href="@Url.Action("Index")" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back to Sports List</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card admin-card">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">Edit Sport</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="SportID" />
+
+                    <div class="mb-3">
+                        <label asp-for="SportName" class="form-label">Sport Name</label>
+                        <input asp-for="SportName" class="form-control" required />
+                        <span asp-validation-for="SportName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description (Optional)</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Update Sport</button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary ms-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,135 @@
+@{
+    ViewData["Title"] = "Home";
+    var featuredFacilities = ViewBag.FeaturedFacilities as IEnumerable<SportsBookingSystem.Models.Facility> ?? Enumerable.Empty<SportsBookingSystem.Models.Facility>();
+    var latestReviews = ViewBag.LatestReviews as IEnumerable<SportsBookingSystem.Models.Review> ?? Enumerable.Empty<SportsBookingSystem.Models.Review>();
+    bool isLoggedIn = Context.Session.GetInt32("MemberID") != null;
+}
+
+<section class="hero-section text-center">
+    <div class="container hero-content">
+        <span class="hero-badge"><i class="bi bi-lightning-charge me-1"></i> Community Sports Platform</span>
+        <h1 class="hero-title">Book Your Perfect<br />Sports Venue Today</h1>
+        <p class="hero-subtitle">Discover local facilities, reserve your slot in seconds, and join a community of active members.</p>
+        <div class="hero-actions d-flex flex-wrap justify-content-center gap-2">
+            @if (!isLoggedIn)
+            {
+                <a href="@Url.Action("Register", "Account")" class="btn btn-hero-primary btn-lg">Get Started Free</a>
+                <a href="@Url.Action("Login", "Account")" class="btn btn-hero-outline btn-lg">Member Login</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Search", "Facility")" class="btn btn-hero-primary btn-lg"><i class="bi bi-search me-2"></i>Find Facilities</a>
+                <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-hero-outline btn-lg"><i class="bi bi-calendar-check me-2"></i>My Bookings</a>
+            }
+        </div>
+    </div>
+</section>
+
+<div class="container stats-row mb-5">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-building"></i>
+                <strong>@featuredFacilities.Count()</strong>
+                <span>Active Facilities</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-star-fill"></i>
+                <strong>@latestReviews.Count()</strong>
+                <span>Recent Reviews</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-clock-history"></i>
+                <strong>24/7</strong>
+                <span>Online Booking</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container page-container pt-0">
+    <div class="section-header">
+        <h2>Featured Facilities</h2>
+        <p>Popular venues available for booking right now</p>
+    </div>
+
+    @if (!featuredFacilities.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-building d-block"></i>
+            <h5>No facilities available yet</h5>
+            <p class="text-muted">Check back soon for new venues.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 mb-5 stagger">
+            @foreach (var facility in featuredFacilities)
+            {
+                <div class="col-md-6 col-lg-4 anim-fade-up">
+                    <div class="facility-card">
+                        <div class="facility-card-img">
+                            <img src="@(!string.IsNullOrEmpty(facility.ImageUrl) ? facility.ImageUrl : "/images/default.jpg")" 
+                                 alt="@facility.FacilityName"
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='/images/default.jpg';"
+                                 style="width:100%;height:100%;object-fit:cover;display:block;" />
+                        </div>
+                        <div class="facility-card-body">
+                            <h5 class="facility-card-title">@facility.FacilityName</h5>
+                            <p class="facility-card-text">@facility.Description</p>
+                            <div class="facility-meta">
+                                <i class="bi bi-pin-map"></i> @facility.Location
+                            </div>
+                        </div>
+                        <div class="facility-card-footer">
+                            <a href="@Url.Action("Details", "Facility", new { id = facility.FacilityID })"
+                               class="btn btn-outline-primary btn-sm">View Details</a>
+                            @if (isLoggedIn)
+                            {
+                                <a href="@Url.Action("Create", "Booking", new { facilityId = facility.FacilityID })"
+                                   class="btn btn-primary btn-sm">Book Now</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="text-center mt-5 mb-2 anim-fade-up reveal">
+            <a href="@Url.Action("Search", "Facility")" class="btn btn-outline-primary btn-lg rounded-pill px-5 shadow-sm">
+                View All Facilities <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    }
+
+    @if (latestReviews.Any())
+    {
+        <div class="section-header">
+            <h2>What Members Say</h2>
+            <p>Real reviews from our community</p>
+        </div>
+        <div class="row g-4">
+            @foreach (var review in latestReviews)
+            {
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>@(review.IsAnonymous ? "Anonymous" : $"{review.Member?.FirstName} {review.Member?.LastName}")</strong>
+                                <div class="text-muted small">@review.Facility?.FacilityName</div>
+                            </div>
+                            <span class="star-rating">@Html.Raw(string.Concat(Enumerable.Repeat("<i class=\"bi bi-star-fill text-warning\"></i>", review.Rating)))@Html.Raw(string.Concat(Enumerable.Repeat("<i class=\"bi bi-star text-muted\"></i>", 5 - review.Rating)))</span>
+                        </div>
+                        <p class="mb-0 text-muted">"@review.CommentText"</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+

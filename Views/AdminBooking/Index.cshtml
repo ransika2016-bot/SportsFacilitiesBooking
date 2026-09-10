@@ -1,0 +1,48 @@
+@model IEnumerable<SportsBookingSystem.Models.Booking>
+@{
+    ViewData["Title"] = "All Bookings";
+    Layout = "_AdminLayout";
+}
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Member</th>
+                    <th>Facility</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>#@item.BookingID</td>
+                        <td>@(item.Member?.FirstName) @(item.Member?.LastName)<br/><small class="text-muted">@item.Member?.Email</small></td>
+                        <td>@(item.Facility?.FacilityName)</td>
+                        <td>@item.BookingDate.ToString("MMM dd, yyyy")<br/><small class="text-muted">@item.StartTime.ToString("HH:mm") - @item.EndTime.ToString("HH:mm")</small></td>
+                        <td>
+                            <span class="badge @(item.Status == "Confirmed" ? "bg-success" : "bg-danger")">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (item.Status != "Cancelled")
+                            {
+                                <form asp-action="Cancel" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.BookingID" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this booking?');">Cancel</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
